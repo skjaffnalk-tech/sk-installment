@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>New SK Phone Shop - Installment Management</title>
+<style>
+:root{--bg:#f3f6fb;--card:#fff;--ink:#172033;--muted:#64748b;--line:#e2e8f0;--blue:#2457d6;--green:#16834a;--red:#c0392b}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Arial,"Noto Sans Tamil",sans-serif}
+header{background:#14264a;color:#fff;padding:20px 4%;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+header h1{font-size:22px;margin:0 0 5px}header small{color:#cbd5e1}
+nav{display:flex;gap:8px;flex-wrap:wrap;padding:12px 4%;background:#fff;border-bottom:1px solid var(--line)}
+button,.btn{border:0;border-radius:9px;padding:10px 14px;background:var(--blue);color:#fff;cursor:pointer;font-weight:600}
+button.secondary{background:#e8eefc;color:#1d3d8f}button.danger{background:#b83232}button.green{background:var(--green)}
+button:disabled{opacity:.5;cursor:not-allowed}
+main{padding:22px 4%;max-width:1400px;margin:auto}.tab{display:none}.tab.active{display:block}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-bottom:18px}
+.card,.panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:0 2px 8px #0f172a08}
+.metric small{color:var(--muted)}.metric strong{display:block;font-size:25px;margin-top:8px}
+h2{font-size:20px;margin:0 0 14px}h3{font-size:16px;margin:16px 0 10px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.between{justify-content:space-between}
+input,select,textarea{width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:8px;background:#fff;font:inherit;color:var(--ink)}
+label{display:block;font-size:13px;color:#475569;margin:0 0 5px}.field{min-width:160px;flex:1;margin-bottom:12px}
+.formgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
+table{width:100%;border-collapse:collapse;background:#fff;min-width:720px}th,td{padding:10px;border-bottom:1px solid var(--line);text-align:left;font-size:14px}th{background:#f8fafc;color:#475569}
+.tablewrap{overflow:auto;border:1px solid var(--line);border-radius:10px}
+.muted{color:var(--muted);font-size:13px}.pill{padding:4px 8px;border-radius:99px;background:#e9f7ef;color:#17663b;font-size:12px}.pill.pending{background:#fff2d8;color:#8a5700}
+.avatar{width:44px;height:44px;border-radius:50%;object-fit:cover;background:#e2e8f0;display:inline-flex;align-items:center;justify-content:center;font-weight:bold;color:#475569}
+.customerline{display:flex;align-items:center;gap:10px}.actions{display:flex;gap:6px;flex-wrap:wrap}
+.progress{height:10px;background:#e2e8f0;border-radius:20px;overflow:hidden}.progress span{display:block;height:100%;background:#16a34a}
+.notice{padding:12px;border-radius:9px;background:#fff7df;color:#76500b;margin:12px 0;font-size:13px}
+.hidden{display:none!important}.subpanel{background:#f8fafc;border:1px dashed #cbd5e1;padding:12px;border-radius:10px;margin:10px 0}
+footer{text-align:center;color:var(--muted);font-size:12px;padding:24px}
+@media(max-width:600px){header h1{font-size:18px}main{padding:14px 3%}nav{padding:10px 3%}nav button{flex:1}}
+@media print{header,nav,.no-print,footer{display:none!important}body{background:#fff}main{padding:0}.tab{display:none!important}#customers.tab.active,#reports.tab.active{display:block!important}.card,.panel{box-shadow:none}}
+</style>
+</head>
+<body>
+<header>
+ <div><h1>📱 New SK Phone Shop</h1><small>Installment Management System · தவணைக் கணக்கு</small></div>
+ <div class="muted" style="color:#dbeafe">Offline HTML Version</div>
+</header>
+<nav class="no-print">
+ <button onclick="showTab('dashboard')">Dashboard</button>
+ <button class="secondary" onclick="showTab('customers')">Customers</button>
+ <button class="secondary" onclick="showTab('add')">புதிய Customer</button>
+ <button class="secondary" onclick="showTab('payment')">Payment பதிவு</button>
+ <button class="secondary" onclick="showTab('reports')">Reports</button>
+ <button class="secondary" onclick="showTab('backup')">Backup</button>
+</nav>
+<main>
+<section id="dashboard" class="tab active">
+ <h2>Shop Dashboard</h2>
+ <div class="grid">
+  <div class="card metric"><small>மொத்த Customers</small><strong id="mCustomers">0</strong></div>
+  <div class="card metric"><small>மொத்த Phone மதிப்பு</small><strong id="mSales">Rs. 0</strong></div>
+  <div class="card metric"><small>இதுவரை வசூல்</small><strong id="mPaid">Rs. 0</strong></div>
+  <div class="card metric"><small>இன்னும் வரவேண்டியது</small><strong id="mDue">Rs. 0</strong></div>
+ </div>
+ <div class="panel">
+  <div class="row between"><h3>மொத்த வசூல் முன்னேற்றம்</h3><strong id="mPercent">0%</strong></div>
+  <div class="progress"><span id="progressBar" style="width:0%"></span></div>
+  <p class="muted">Customer-கள் செலுத்தும் ஒவ்வொரு Payment-க்கும் வசூல் தொகை தானாக புதுப்பிக்கப்படும்.</p>
+ </div>
+ <div class="panel" style="margin-top:14px"><h3>சமீபத்திய Payments</h3><div id="recentPayments" class="muted">Payment இன்னும் பதிவு செய்யப்படவில்லை.</div></div>
+</section>
+
+<section id="customers" class="tab">
+ <div class="row between"><h2>Customer பட்டியல்</h2><button onclick="showTab('add')">+ Customer சேர்க்க</button></div>
+ <div class="row no-print" style="margin-bottom:12px">
+  <div style="flex:2;min-width:200px"><input id="search" placeholder="பெயர் / Phone / IMEI தேடுங்கள்..." oninput="renderCustomers()"></div>
+  <select id="filter" style="max-width:180px" onchange="renderCustomers()"><option value="all">அனைவரும்</option><option value="due">Balance உள்ளவர்கள்</option><option value="clear">முழுவதும் செலுத்தியவர்கள்</option></select>
+ </div>
+ <div class="tablewrap"><table><thead><tr><th>Customer</th><th>Phones</th><th>Total</th><th>Paid</th><th>Balance</th><th>Status</th><th class="no-print">Action</th></tr></thead><tbody id="customerRows"></tbody></table></div>
+ <p class="muted">Customer பெயரைத் தேர்ந்தெடுத்து விவரங்களைப் பார்க்கலாம்.</p>
+</section>
+
+<section id="add" class="tab">
+ <h2 id="formTitle">புதிய Customer சேர்க்க</h2>
+ <form id="customerForm" class="panel">
+  <input type="hidden" id="editId">
+  <div class="formgrid">
+   <div class="field"><label>Customer Name *</label><input id="name" required></div>
+   <div class="field"><label>Mobile Number</label><input id="phone"></div>
+   <div class="field"><label>NIC Number</label><input id="nic"></div>
+   <div class="field"><label>Address</label><input id="address"></div>
+   <div class="field"><label>Customer Photo (விருப்பம்)</label><input id="photo" type="file" accept="image/*"></div>
+  </div>
+  <div class="muted">Photo சேர்க்காவிட்டாலும் Customer-ஐ Save செய்யலாம்.</div>
+  <div id="photoPreview" style="margin:10px 0"></div>
+  <h3>Mobile Phone விவரங்கள்</h3>
+  <div id="phoneList"></div>
+  <button type="button" class="secondary" onclick="addPhoneRow()">+ இன்னொரு Phone</button>
+  <div class="row" style="margin-top:18px"><button type="submit">Customer Save</button><button type="button" class="secondary" onclick="resetForm()">Clear</button></div>
+ </form>
+</section>
+
+<section id="payment" class="tab">
+ <h2>தவணை Payment பதிவு</h2>
+ <div class="panel">
+  <div class="field"><label>Customer தேர்வு *</label><select id="payCustomer" onchange="updatePayInfo()"><option value="">Customer தேர்வு செய்யுங்கள்</option></select></div>
+  <div id="payInfo" class="subpanel muted">Customer தேர்வு செய்ததும் Balance காட்டப்படும்.</div>
+  <form id="paymentForm">
+   <div class="formgrid">
+    <div class="field"><label>Payment Date *</label><input id="payDate" type="date" required></div>
+    <div class="field"><label>Paid Amount (Rs.) *</label><input id="payAmount" type="number" min="0.01" step="0.01" required></div>
+    <div class="field"><label>Payment Method</label><select id="payMethod"><option>Cash</option><option>Bank Transfer</option><option>Card (Manual Record)</option><option>Other</option></select></div>
+    <div class="field"><label>குறிப்பு / Receipt No.</label><input id="payNote"></div>
+   </div>
+   <button type="submit" class="green">Payment Save</button>
+  </form>
+ </div>
+</section>
+
+<section id="reports" class="tab">
+ <div class="row between"><h2>Reports</h2><button class="secondary no-print" onclick="window.print()">Print Report</button></div>
+ <div class="grid">
+  <div class="card metric"><small>மொத்த விற்பனை மதிப்பு</small><strong id="rSales">Rs. 0</strong></div>
+  <div class="card metric"><small>மொத்தம் வசூலித்தது</small><strong id="rPaid">Rs. 0</strong></div>
+  <div class="card metric"><small>மீதமுள்ள Balance</small><strong id="rDue">Rs. 0</strong></div>
+ </div>
+ <div class="panel"><h3>Customer நிலுவைப் பட்டியல்</h3><div class="tablewrap"><table><thead><tr><th>Customer</th><th>Phone</th><th>Total</th><th>Paid</th><th>Balance</th></tr></thead><tbody id="dueRows"></tbody></table></div></div>
+ <div class="panel" style="margin-top:14px"><h3>Payment History</h3><div class="tablewrap"><table><thead><tr><th>Date</th><th>Customer</th><th>Amount</th><th>Method</th><th>Note</th></tr></thead><tbody id="paymentRows"></tbody></table></div></div>
+</section>
+
+<section id="backup" class="tab">
+ <h2>Backup & Data Export</h2>
+ <div class="panel">
+  <h3>JSON Backup</h3><p class="muted">Customer, Phone, Payment விவரங்களை Backup செய்யலாம்.</p>
+  <button onclick="backupJSON()">Download JSON Backup</button>
+  <h3>JSON Restore</h3><input type="file" id="restoreFile" accept=".json,application/json"><button class="secondary" onclick="restoreJSON()" style="margin-top:8px">Restore Backup</button>
+  <hr style="border:0;border-top:1px solid var(--line);margin:20px 0">
+  <h3>Excel-ல் திறக்க CSV Export</h3><p class="muted">Customer கணக்குகளை Excel-ல் திறக்க CSV பதிவிறக்கம் செய்யலாம்.</p>
+  <button class="green" onclick="exportCSV()">Download Customer CSV</button>
+  <div class="notice">இந்த முதல் பதிப்பு தரவுகளை இந்த Browser / இந்த கணினியில் மட்டும் சேமிக்கும். Browser Data அழிக்கப்பட்டால் பதிவுகள் இழக்கப்படலாம். அடிக்கடி JSON Backup எடுக்கவும். பல கணினிகளில் Online Sync செய்ய Server + Database தேவை.</div>
+ </div>
+</section>
+</main>
+<footer>New SK Phone Shop · Installment Management · Keep regular backups</footer>
+
+<script>
+const KEY='new_sk_installment_v1';
+let db={customers:[],payments:[]}, currentPhoto='';
+const $=id=>document.getElementById(id);
+const money=n=>'Rs. '+Number(n||0).toLocaleString('en-LK',{minimumFractionDigits:2,maximumFractionDigits:2});
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function load(){try{db=JSON.parse(localStorage.getItem(KEY))||db}catch(e){alert('Saved data படிக்க முடியவில்லை. Backup இருந்தால் Restore செய்யுங்கள்.')} }
+function save(){localStorage.setItem(KEY,JSON.stringify(db));renderAll()}
+function total(c){return (c.phones||[]).reduce((s,p)=>s+Number(p.price||0),0)}
+function paid(c){return db.payments.filter(x=>x.customerId===c.id).reduce((s,p)=>s+Number(p.amount||0),0)+(c.phones||[]).reduce((s,p)=>s+Number(p.advance||0),0)}
+function due(c){return Math.max(0,total(c)-paid(c))}
+function showTab(id){document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));$(id).classList.add('active');document.querySelectorAll('nav button').forEach(x=>x.classList.add('secondary'));event?.target?.classList.remove('secondary');renderAll()}
+function addPhoneRow(data={}){const div=document.createElement('div');div.className='subpanel phone-row';div.innerHTML=`<div class="formgrid">
+<div class="field"><label>Phone Model *</label><input class="p-model" value="${esc(data.model||'')}" required></div>
+<div class="field"><label>IMEI Number</label><input class="p-imei" value="${esc(data.imei||'')}"></div>
+<div class="field"><label>Total Price (Rs.) *</label><input class="p-price" type="number" min="0" step="0.01" value="${data.price??''}" required></div>
+<div class="field"><label>Advance (Rs.)</label><input class="p-advance" type="number" min="0" step="0.01" value="${data.advance??0}"></div>
+<div class="field"><label>Monthly Installment (Rs.)</label><input class="p-monthly" type="number" min="0" step="0.01" value="${data.monthly??''}"></div>
+<div class="field"><label>Due Day (1-31)</label><input class="p-day" type="number" min="1" max="31" value="${data.day??''}"></div>
+</div><button type="button" class="danger" onclick="this.parentElement.remove()">இந்த Phone நீக்கு</button>`;
+$('phoneList').appendChild(div)}
+function resetForm(){$('customerForm').reset();$('editId').value='';$('phoneList').innerHTML='';addPhoneRow();currentPhoto='';$('photoPreview').innerHTML='';$('formTitle').textContent='புதிய Customer சேர்க்க'}
+$('photo').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{currentPhoto=rd.result;$('photoPreview').innerHTML=`<img src="${currentPhoto}" class="avatar" style="width:90px;height:90px">`};rd.readAsDataURL(f)});
+$('customerForm').addEventListener('submit',e=>{e.preventDefault();const rows=[...document.querySelectorAll('.phone-row')];if(!rows.length){alert('குறைந்தது ஒரு Phone சேர்க்கவும்');return}
+ const phones=rows.map(r=>({model:r.querySelector('.p-model').value.trim(),imei:r.querySelector('.p-imei').value.trim(),price:Number(r.querySelector('.p-price').value),advance:Number(r.querySelector('.p-advance').value||0),monthly:Number(r.querySelector('.p-monthly').value||0),day:Number(r.querySelector('.p-day').value||0)}));
+ if(phones.some(p=>!p.model||!Number.isFinite(p.price)||p.price<0||p.advance>p.price)){alert('Phone விவரங்கள் மற்றும் Advance தொகையைச் சரிபார்க்கவும்');return}
+ const id=$('editId').value||('C'+Date.now());let old=db.customers.find(c=>c.id===id);
+ const c={id,name:$('name').value.trim(),phone:$('phone').value.trim(),nic:$('nic').value.trim(),address:$('address').value.trim(),photo:currentPhoto||old?.photo||'',phones};
+ if(old)db.customers=db.customers.map(x=>x.id===id?c:x);else db.customers.push(c);
+ save();resetForm();showTab('customers');alert('Customer Save செய்யப்பட்டது!')});
+function editCustomer(id){const c=db.customers.find(x=>x.id===id);if(!c)return;showTab('add');$('editId').value=id;$('name').value=c.name;$('phone').value=c.phone;$('nic').value=c.nic;$('address').value=c.address;currentPhoto=c.photo||'';$('photoPreview').innerHTML=currentPhoto?`<img src="${currentPhoto}" class="avatar" style="width:90px;height:90px">`:'';$('phoneList').innerHTML='';c.phones.forEach(addPhoneRow);$('formTitle').textContent='Customer விவரங்களை மாற்று'}
+function deleteCustomer(id){if(!confirm('இந்த Customer மற்றும் அவரின் Payment பதிவுகளை நீக்கவா?'))return;db.customers=db.customers.filter(c=>c.id!==id);db.payments=db.payments.filter(p=>p.customerId!==id);save()}
+function viewCustomer(id){const c=db.customers.find(x=>x.id===id);if(!c)return;const ph=c.phones.map(p=>`${p.model} | IMEI: ${p.imei||'-'} | Price: ${money(p.price)} | Advance: ${money(p.advance)} | Monthly: ${money(p.monthly)}`).join('\\n');const hist=db.payments.filter(p=>p.customerId===id).map(p=>`${p.date} - ${money(p.amount)} (${p.method})`).join('\\n')||'Payment இல்லை';alert(`Customer: ${c.name}\\nPhone: ${c.phone}\\nNIC: ${c.nic}\\nAddress: ${c.address}\\n\\n${ph}\\n\\nTotal: ${money(total(c))}\\nPaid: ${money(paid(c))}\\nBalance: ${money(due(c))}\\n\\nPayment History:\\n${hist}`)}
+function renderCustomers(){const q=($('search')?.value||'').toLowerCase(),f=$('filter')?.value||'all';let arr=db.customers.filter(c=>[c.name,c.phone,c.nic,...c.phones.map(p=>p.model+' '+p.imei)].join(' ').toLowerCase().includes(q));if(f==='due')arr=arr.filter(c=>due(c)>0);if(f==='clear')arr=arr.filter(c=>due(c)<=0);
+ $('customerRows').innerHTML=arr.map(c=>`<tr><td><div class="customerline">${c.photo?`<img class="avatar" src="${c.photo}">`:`<span class="avatar">${esc((c.name||'?')[0])}</span>`}<div><b>${esc(c.name)}</b><div class="muted">${esc(c.phone)}</div></div></div></td><td>${c.phones.length}</td><td>${money(total(c))}</td><td>${money(paid(c))}</td><td><b>${money(due(c))}</b></td><td>${due(c)>0?'<span class="pill pending">Pending</span>':'<span class="pill">Paid</span>'}</td><td class="no-print"><div class="actions"><button class="secondary" onclick="viewCustomer('${c.id}')">View</button><button class="secondary" onclick="editCustomer('${c.id}')">Edit</button><button class="danger" onclick="deleteCustomer('${c.id}')">Delete</button></div></td></tr>`).join('')||'<tr><td colspan="7">Customer பதிவு இல்லை.</td></tr>'}
+function updatePayOptions(){const s=$('payCustomer'),v=s.value;s.innerHTML='<option value="">Customer தேர்வு செய்யுங்கள்</option>'+db.customers.map(c=>`<option value="${c.id}">${esc(c.name)} - ${esc(c.phone)}</option>`).join('');s.value=v}
+function updatePayInfo(){const c=db.customers.find(x=>x.id===$('payCustomer').value);$('payInfo').textContent=c?`மொத்தம்: ${money(total(c))} | செலுத்தியது: ${money(paid(c))} | மீதி: ${money(due(c))}`:'Customer தேர்வு செய்ததும் Balance காட்டப்படும்.'}
+$('paymentForm').addEventListener('submit',e=>{e.preventDefault();const c=db.customers.find(x=>x.id===$('payCustomer').value),amount=Number($('payAmount').value);if(!c){alert('Customer தேர்வு செய்யுங்கள்');return}if(amount<=0){alert('சரியான தொகையை உள்ளிடுங்கள்');return}if(amount>due(c)){if(!confirm('இந்த Payment தற்போதைய Balance-ஐ விட அதிகம். தொடரவா?'))return}
+ db.payments.push({id:'P'+Date.now(),customerId:c.id,date:$('payDate').value,amount,method:$('payMethod').value,note:$('payNote').value});save();$('paymentForm').reset();$('payDate').value=new Date().toISOString().slice(0,10);updatePayOptions();$('payCustomer').value=c.id;updatePayInfo();alert('Payment பதிவு செய்யப்பட்டது!')});
+function renderAll(){const sales=db.customers.reduce((s,c)=>s+total(c),0),col=db.customers.reduce((s,c)=>s+paid(c),0),balance=db.customers.reduce((s,c)=>s+due(c),0),count=db.customers.length,pct=sales?Math.min(100,col/sales*100):0;
+ $('mCustomers').textContent=count;$('mSales').textContent=money(sales);$('mPaid').textContent=money(col);$('mDue').textContent=money(balance);$('mPercent').textContent=pct.toFixed(1)+'%';$('progressBar').style.width=pct+'%';
+ $('rSales').textContent=money(sales);$('rPaid').textContent=money(col);$('rDue').textContent=money(balance);
+ renderCustomers();updatePayOptions();updatePayInfo();
+ $('dueRows').innerHTML=db.customers.filter(c=>due(c)>0).map(c=>`<tr><td>${esc(c.name)}</td><td>${esc(c.phone)}</td><td>${money(total(c))}</td><td>${money(paid(c))}</td><td>${money(due(c))}</td></tr>`).join('')||'<tr><td colspan="5">நிலுவை இல்லை.</td></tr>';
+ const pays=[...db.payments].sort((a,b)=>b.date.localeCompare(a.date));$('paymentRows').innerHTML=pays.map(p=>{const c=db.customers.find(x=>x.id===p.customerId);return `<tr><td>${esc(p.date)}</td><td>${esc(c?.name||'Deleted Customer')}</td><td>${money(p.amount)}</td><td>${esc(p.method)}</td><td>${esc(p.note)}</td></tr>`}).join('')||'<tr><td colspan="5">Payment இல்லை.</td></tr>';
+ $('recentPayments').innerHTML=pays.slice(0,5).map(p=>{const c=db.customers.find(x=>x.id===p.customerId);return `<div class="row between" style="padding:7px 0;border-bottom:1px solid var(--line)"><span>${esc(c?.name||'Customer')} · ${esc(p.date)}</span><b>${money(p.amount)}</b></div>`}).join('')||'Payment இன்னும் பதிவு செய்யப்படவில்லை.'}
+function download(name,content,type){const a=document.createElement('a'),u=URL.createObjectURL(new Blob([content],{type}));a.href=u;a.download=name;a.click();URL.revokeObjectURL(u)}
+function backupJSON(){download('New_SK_Installment_Backup.json',JSON.stringify(db,null,2),'application/json')}
+function restoreJSON(){const f=$('restoreFile').files[0];if(!f){alert('JSON Backup File தேர்வு செய்யுங்கள்');return}const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!Array.isArray(d.customers)||!Array.isArray(d.payments))throw 0;if(!confirm('தற்போதைய பதிவுகளை Backup பதிவுகளால் மாற்றவா?'))return;db=d;save();alert('Restore முடிந்தது')}catch(e){alert('சரியான Backup JSON File அல்ல')}};r.readAsText(f)}
+function exportCSV(){const rows=[['Customer Name','Phone','NIC','Address','Phone Model','IMEI','Phone Price','Advance','Monthly Installment','Paid Total','Remaining Balance']];db.customers.forEach(c=>c.phones.forEach(p=>rows.push([c.name,c.phone,c.nic,c.address,p.model,p.imei,p.price,p.advance,p.monthly,paid(c),due(c)])));const csv='\\ufeff'+rows.map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\\r\\n');download('New_SK_Customers.csv',csv,'text/csv;charset=utf-8')}
+load();resetForm();$('payDate').value=new Date().toISOString().slice(0,10);renderAll();
+</script>
+</body>
+</html>
